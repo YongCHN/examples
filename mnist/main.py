@@ -121,17 +121,20 @@ def main():
     test_loader = torch.utils.data.DataLoader(dataset2, **test_kwargs)
 
     model = Net().to(device)
+    
+    traced_model = torch.jit.script(model)
+    
     optimizer = optim.Adadelta(model.parameters(), lr=args.lr)
 
     scheduler = StepLR(optimizer, step_size=1, gamma=args.gamma)
     for epoch in range(1, args.epochs + 1):
-        train(args, model, device, train_loader, optimizer, epoch)
-        test(model, device, test_loader)
+        train(args, traced_model, device, train_loader, optimizer, epoch)
+        test(traced_model, device, test_loader)
         scheduler.step()
 
 
     torch.save(model.state_dict(), "/workspace/storages/pytorch/mnist_cnn.pt")
-
+    traced_model.save('/workspace/storages/pytorch/mnist.zip')
 
 if __name__ == '__main__':
     main()
